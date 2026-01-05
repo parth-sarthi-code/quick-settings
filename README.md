@@ -1,7 +1,13 @@
 
+
 # Quick Settings (qs)
 
-A modern, lightweight, high-performance quick settings panel and top bar for Wayland compositors (tested with [niri](https://github.com/YaLTeR/niri)).
+Quick Settings (qs) is a modern, lightweight quick settings panel and top bar for Wayland compositors (tested with [niri](https://github.com/YaLTeR/niri)).
+
+**This project is in active development and needs more real-world testing.**
+Contributions, bug reports, and feedback are welcome!
+
+**A sample Waybar config is also included in this repository for easy integration.**
 
 ## Screenshot
 
@@ -49,34 +55,6 @@ A modern, lightweight, high-performance quick settings panel and top bar for Way
     ```json
     "on-click": "pkill -SIGUSR1 qs"
     ```
-    - Methods: Shutdown, Reboot, Suspend, Logout
-- **Battery:**
-    - Service: `org.freedesktop.UPower`
-    - Methods: Battery status, percentage
-
-### deviced Daemon (WiFi & Bluetooth)
-- **Network:**
-    - Service: `org.freedesktop.NetworkManager`
-    - Methods: Enable/disable Wi-Fi, show status
-- **Bluetooth:**
-    - Service: `org.bluez`
-    - Methods: Enable/disable, show status
-
-### CLI Tools
-- **Audio:**
-    - `wpctl set-volume`, `wpctl get-volume`
-- **Brightness:**
-    - `brightnessctl set`, `brightnessctl get`
-- **Power profiles:**
-    - `powerprofilesctl set`, `powerprofilesctl get`
-- **Systemd:**
-    - `systemctl poweroff`, `systemctl reboot`
-- **Session:**
-    - `loginctl lock-session`, `loginctl terminate-session`
-- **VPN:**
-    - `warp-cli status`, `warp-cli connect`, `warp-cli disconnect`
-- **Media:**
-    - `playerctl play-pause`, `playerctl next`, `playerctl previous`
 
 src/
 src/
