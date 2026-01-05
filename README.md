@@ -5,8 +5,6 @@ A modern quick settings panel and top bar for Wayland compositors.
 ## Screenshots
 
 ![Panel](screenshots/panel.png)
-![Expanded](screenshots/expanded.png)
-![Desktop](screenshots/desktop.png)
 
 A lightweight, high-performance quick settings panel and top bar for Wayland compositors (tested with [niri](https://github.com/YaLTeR/niri)).
 
