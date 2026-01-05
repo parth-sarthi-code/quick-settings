@@ -20,9 +20,7 @@ fn main() -> Result<()> {
     gtk4::init()?;
 
     // Create the GTK application
-    let app = Application::builder()
-        .application_id(APP_ID)
-        .build();
+    let app = Application::builder().application_id(APP_ID).build();
 
     // Create shared state
     let state = Arc::new(RwLock::new(AppState::new()));
@@ -33,17 +31,18 @@ fn main() -> Result<()> {
     app.connect_activate(move |app| {
         // Build the quick settings panel (hidden by default)
         let quick_settings = QuickSettings::new(app, Arc::clone(&state_clone));
-        
+
         // Setup signal handler for SIGUSR1 to toggle panel
         let qs_clone = Arc::clone(&quick_settings);
-        glib::unix_signal_add_local(10, move || { // SIGUSR1 = 10 on Unix
+        glib::unix_signal_add_local(10, move || {
+            // SIGUSR1 = 10 on Unix
             let qs = Arc::clone(&qs_clone);
             glib::spawn_future_local(async move {
                 qs.toggle().await;
             });
             glib::ControlFlow::Continue
         });
-        
+
         // Don't show initially - waybar will trigger it
         // quick_settings.show();
     });

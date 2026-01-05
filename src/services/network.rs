@@ -40,24 +40,36 @@ impl NetworkService {
 
     #[allow(dead_code)]
     pub async fn get_wifi_networks(&self) -> Result<Vec<WifiNetwork>> {
-        let connection = self.connection.as_ref().ok_or_else(|| anyhow!("No D-Bus connection"))?;
+        let connection = self
+            .connection
+            .as_ref()
+            .ok_or_else(|| anyhow!("No D-Bus connection"))?;
 
         let mut networks = Vec::new();
 
         // Find WiFi device and get access points
-        if let Some((device_path, wifi_proxy, _active_ssid)) = self.find_wifi_device(connection).await? {
+        if let Some((device_path, wifi_proxy, _active_ssid)) =
+            self.find_wifi_device(connection).await?
+        {
             let active_ssid = self.get_active_ssid(connection, &device_path).await;
 
             // Request scan and get APs
-            let _ = wifi_proxy.call_method("RequestScan", &(HashMap::<String, Value>::new())).await;
+            let _ = wifi_proxy
+                .call_method("RequestScan", &(HashMap::<String, Value>::new()))
+                .await;
 
-            let aps: Vec<zbus::zvariant::OwnedObjectPath> =
-                wifi_proxy.call_method("GetAccessPoints", &()).await?.body().deserialize()?;
+            let aps: Vec<zbus::zvariant::OwnedObjectPath> = wifi_proxy
+                .call_method("GetAccessPoints", &())
+                .await?
+                .body()
+                .deserialize()?;
 
             let mut ssid_map: HashMap<String, WifiNetwork> = HashMap::new();
 
             for ap_path in aps {
-                if let Ok(network) = Self::parse_access_point(connection, &ap_path, &active_ssid).await {
+                if let Ok(network) =
+                    Self::parse_access_point(connection, &ap_path, &active_ssid).await
+                {
                     if !network.ssid.is_empty() {
                         ssid_map
                             .entry(network.ssid.clone())
@@ -86,15 +98,21 @@ impl NetworkService {
 
     #[allow(dead_code)]
     pub async fn connect_network(&self, ssid: &str) -> Result<()> {
-        let connection = self.connection.as_ref().ok_or_else(|| anyhow!("No D-Bus connection"))?;
+        let connection = self
+            .connection
+            .as_ref()
+            .ok_or_else(|| anyhow!("No D-Bus connection"))?;
 
         let (device_path, wifi_proxy, _) = self
             .find_wifi_device(connection)
             .await?
             .ok_or_else(|| anyhow!("No WiFi device found"))?;
 
-        let aps: Vec<zbus::zvariant::OwnedObjectPath> =
-            wifi_proxy.call_method("GetAccessPoints", &()).await?.body().deserialize()?;
+        let aps: Vec<zbus::zvariant::OwnedObjectPath> = wifi_proxy
+            .call_method("GetAccessPoints", &())
+            .await?
+            .body()
+            .deserialize()?;
 
         for ap_path in aps {
             if let Ok(ap_ssid) = Self::get_ap_ssid(connection, &ap_path).await {
@@ -110,7 +128,10 @@ impl NetworkService {
                     .await?;
 
                     let _: zbus::zvariant::OwnedObjectPath = nm_proxy
-                        .call_method("ActivateConnection", &(connection_path, &device_path, &ap_path))
+                        .call_method(
+                            "ActivateConnection",
+                            &(connection_path, &device_path, &ap_path),
+                        )
                         .await?
                         .body()
                         .deserialize()?;
@@ -125,7 +146,10 @@ impl NetworkService {
 
     #[allow(dead_code)]
     pub async fn disconnect_network(&self) -> Result<()> {
-        let connection = self.connection.as_ref().ok_or_else(|| anyhow!("No D-Bus connection"))?;
+        let connection = self
+            .connection
+            .as_ref()
+            .ok_or_else(|| anyhow!("No D-Bus connection"))?;
 
         let nm_proxy = Proxy::new(
             connection,
@@ -135,8 +159,11 @@ impl NetworkService {
         )
         .await?;
 
-        let devices: Vec<zbus::zvariant::OwnedObjectPath> =
-            nm_proxy.call_method("GetDevices", &()).await?.body().deserialize()?;
+        let devices: Vec<zbus::zvariant::OwnedObjectPath> = nm_proxy
+            .call_method("GetDevices", &())
+            .await?
+            .body()
+            .deserialize()?;
 
         for device_path in devices {
             if let Ok(device_type) = Self::get_device_type(connection, &device_path).await {
@@ -149,7 +176,11 @@ impl NetworkService {
                     )
                     .await?;
 
-                    let _: () = device_iface.call_method("Disconnect", &()).await?.body().deserialize()?;
+                    let _: () = device_iface
+                        .call_method("Disconnect", &())
+                        .await?
+                        .body()
+                        .deserialize()?;
                     return Ok(());
                 }
             }
@@ -171,8 +202,11 @@ impl NetworkService {
         )
         .await?;
 
-        let devices: Vec<zbus::zvariant::OwnedObjectPath> =
-            nm_proxy.call_method("GetDevices", &()).await?.body().deserialize()?;
+        let devices: Vec<zbus::zvariant::OwnedObjectPath> = nm_proxy
+            .call_method("GetDevices", &())
+            .await?
+            .body()
+            .deserialize()?;
 
         for device_path in devices {
             if let Ok(device_type) = Self::get_device_type(connection, &device_path).await {
@@ -194,7 +228,10 @@ impl NetworkService {
         Ok(None)
     }
 
-    async fn get_device_type(connection: &Connection, device_path: &zbus::zvariant::OwnedObjectPath) -> Result<u32> {
+    async fn get_device_type(
+        connection: &Connection,
+        device_path: &zbus::zvariant::OwnedObjectPath,
+    ) -> Result<u32> {
         let proxy = Proxy::new(
             connection,
             "org.freedesktop.NetworkManager",
@@ -204,7 +241,10 @@ impl NetworkService {
         .await?;
 
         let result: u32 = proxy
-            .call_method("Get", &("org.freedesktop.NetworkManager.Device", "DeviceType"))
+            .call_method(
+                "Get",
+                &("org.freedesktop.NetworkManager.Device", "DeviceType"),
+            )
             .await?
             .body()
             .deserialize::<Value>()?
@@ -213,7 +253,11 @@ impl NetworkService {
         Ok(result)
     }
 
-    async fn get_active_ssid(&self, connection: &Connection, device_path: &zbus::zvariant::OwnedObjectPath) -> Option<String> {
+    async fn get_active_ssid(
+        &self,
+        connection: &Connection,
+        device_path: &zbus::zvariant::OwnedObjectPath,
+    ) -> Option<String> {
         let device_proxy = Proxy::new(
             connection,
             "org.freedesktop.NetworkManager",
@@ -224,7 +268,10 @@ impl NetworkService {
         .ok()?;
 
         let active_conn_path: Option<zbus::zvariant::OwnedObjectPath> = device_proxy
-            .call_method("Get", &("org.freedesktop.NetworkManager.Device", "ActiveConnection"))
+            .call_method(
+                "Get",
+                &("org.freedesktop.NetworkManager.Device", "ActiveConnection"),
+            )
             .await
             .ok()?
             .body()
@@ -245,10 +292,21 @@ impl NetworkService {
                 .ok()?;
 
                 if let Ok(ap_path) = conn_proxy
-                    .call_method("Get", &("org.freedesktop.NetworkManager.Connection.Active", "SpecificObject"))
+                    .call_method(
+                        "Get",
+                        &(
+                            "org.freedesktop.NetworkManager.Connection.Active",
+                            "SpecificObject",
+                        ),
+                    )
                     .await
                 {
-                    if let Some(ap_path_val) = ap_path.body().deserialize::<Value>().ok().and_then(|v| v.try_into().ok()) {
+                    if let Some(ap_path_val) = ap_path
+                        .body()
+                        .deserialize::<Value>()
+                        .ok()
+                        .and_then(|v| v.try_into().ok())
+                    {
                         let ap_path_val: zbus::zvariant::OwnedObjectPath = ap_path_val;
                         if ap_path_val.as_str() != "/" {
                             return Self::get_ap_ssid(connection, &ap_path_val).await.ok();
@@ -261,7 +319,10 @@ impl NetworkService {
         None
     }
 
-    async fn get_ap_ssid(connection: &Connection, ap_path: &zbus::zvariant::OwnedObjectPath) -> Result<String> {
+    async fn get_ap_ssid(
+        connection: &Connection,
+        ap_path: &zbus::zvariant::OwnedObjectPath,
+    ) -> Result<String> {
         let ap_proxy = Proxy::new(
             connection,
             "org.freedesktop.NetworkManager",
@@ -271,7 +332,10 @@ impl NetworkService {
         .await?;
 
         let ssid_bytes: Vec<u8> = ap_proxy
-            .call_method("Get", &("org.freedesktop.NetworkManager.AccessPoint", "Ssid"))
+            .call_method(
+                "Get",
+                &("org.freedesktop.NetworkManager.AccessPoint", "Ssid"),
+            )
             .await?
             .body()
             .deserialize::<Value>()?
@@ -294,7 +358,10 @@ impl NetworkService {
         .await?;
 
         let ssid_bytes: Vec<u8> = ap_proxy
-            .call_method("Get", &("org.freedesktop.NetworkManager.AccessPoint", "Ssid"))
+            .call_method(
+                "Get",
+                &("org.freedesktop.NetworkManager.AccessPoint", "Ssid"),
+            )
             .await?
             .body()
             .deserialize::<Value>()?
@@ -303,28 +370,40 @@ impl NetworkService {
         let ssid = String::from_utf8_lossy(&ssid_bytes).to_string();
 
         let strength: u8 = ap_proxy
-            .call_method("Get", &("org.freedesktop.NetworkManager.AccessPoint", "Strength"))
+            .call_method(
+                "Get",
+                &("org.freedesktop.NetworkManager.AccessPoint", "Strength"),
+            )
             .await?
             .body()
             .deserialize::<Value>()?
             .try_into()?;
 
         let flags: u32 = ap_proxy
-            .call_method("Get", &("org.freedesktop.NetworkManager.AccessPoint", "Flags"))
+            .call_method(
+                "Get",
+                &("org.freedesktop.NetworkManager.AccessPoint", "Flags"),
+            )
             .await?
             .body()
             .deserialize::<Value>()?
             .try_into()?;
 
         let wpa_flags: u32 = ap_proxy
-            .call_method("Get", &("org.freedesktop.NetworkManager.AccessPoint", "WpaFlags"))
+            .call_method(
+                "Get",
+                &("org.freedesktop.NetworkManager.AccessPoint", "WpaFlags"),
+            )
             .await?
             .body()
             .deserialize::<Value>()?
             .try_into()?;
 
         let rsn_flags: u32 = ap_proxy
-            .call_method("Get", &("org.freedesktop.NetworkManager.AccessPoint", "RsnFlags"))
+            .call_method(
+                "Get",
+                &("org.freedesktop.NetworkManager.AccessPoint", "RsnFlags"),
+            )
             .await?
             .body()
             .deserialize::<Value>()?
@@ -355,8 +434,11 @@ impl NetworkService {
         )
         .await?;
 
-        let conns: Vec<zbus::zvariant::OwnedObjectPath> =
-            settings_proxy.call_method("ListConnections", &()).await?.body().deserialize()?;
+        let conns: Vec<zbus::zvariant::OwnedObjectPath> = settings_proxy
+            .call_method("ListConnections", &())
+            .await?
+            .body()
+            .deserialize()?;
 
         for conn_path in &conns {
             let conn_proxy = Proxy::new(
@@ -368,7 +450,10 @@ impl NetworkService {
             .await?;
 
             if let Ok(settings) = conn_proxy.call_method("GetSettings", &()).await {
-                if let Ok(map) = settings.body().deserialize::<HashMap<String, HashMap<String, Value>>>() {
+                if let Ok(map) = settings
+                    .body()
+                    .deserialize::<HashMap<String, HashMap<String, Value>>>()
+                {
                     if let Some(id_val) = map.get("connection").and_then(|cs| cs.get("id")) {
                         if let Ok(id_str) = Self::value_to_string(id_val) {
                             if id_str == ssid {
@@ -393,8 +478,11 @@ impl NetworkService {
         wifi_section.insert("ssid".to_string(), Value::new(ssid.as_bytes()));
         connection_settings.insert("802-11-wireless".to_string(), wifi_section);
 
-        let new_path: zbus::zvariant::OwnedObjectPath =
-            settings_proxy.call_method("AddConnection", &(connection_settings)).await?.body().deserialize()?;
+        let new_path: zbus::zvariant::OwnedObjectPath = settings_proxy
+            .call_method("AddConnection", &(connection_settings))
+            .await?
+            .body()
+            .deserialize()?;
 
         Ok(new_path)
     }

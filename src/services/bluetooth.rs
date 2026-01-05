@@ -33,7 +33,10 @@ impl BluetoothService {
 
     #[allow(dead_code)]
     pub async fn list_devices(&self) -> Result<Vec<BluetoothDevice>> {
-        let connection = self.connection.as_ref().ok_or_else(|| anyhow!("No D-Bus connection"))?;
+        let connection = self
+            .connection
+            .as_ref()
+            .ok_or_else(|| anyhow!("No D-Bus connection"))?;
 
         let proxy = ObjectManagerProxy::builder(connection)
             .destination(BLUEZ_SERVICE)?
@@ -64,9 +67,13 @@ impl BluetoothService {
     #[allow(dead_code)]
     pub async fn connect_device(&self, mac: &str) -> Result<()> {
         let device_path = self.find_device_path(mac).await?;
-        let connection = self.connection.as_ref().ok_or_else(|| anyhow!("No D-Bus connection"))?;
+        let connection = self
+            .connection
+            .as_ref()
+            .ok_or_else(|| anyhow!("No D-Bus connection"))?;
 
-        let device_proxy = Proxy::new(connection, BLUEZ_SERVICE, device_path, BLUEZ_DEVICE_IFACE).await?;
+        let device_proxy =
+            Proxy::new(connection, BLUEZ_SERVICE, device_path, BLUEZ_DEVICE_IFACE).await?;
         device_proxy.call_method("Connect", &()).await?;
         Ok(())
     }
@@ -74,16 +81,23 @@ impl BluetoothService {
     #[allow(dead_code)]
     pub async fn disconnect_device(&self, mac: &str) -> Result<()> {
         let device_path = self.find_device_path(mac).await?;
-        let connection = self.connection.as_ref().ok_or_else(|| anyhow!("No D-Bus connection"))?;
+        let connection = self
+            .connection
+            .as_ref()
+            .ok_or_else(|| anyhow!("No D-Bus connection"))?;
 
-        let device_proxy = Proxy::new(connection, BLUEZ_SERVICE, device_path, BLUEZ_DEVICE_IFACE).await?;
+        let device_proxy =
+            Proxy::new(connection, BLUEZ_SERVICE, device_path, BLUEZ_DEVICE_IFACE).await?;
         device_proxy.call_method("Disconnect", &()).await?;
         Ok(())
     }
 
     // Helper methods
     async fn find_device_path(&self, mac: &str) -> Result<zbus::zvariant::OwnedObjectPath> {
-        let connection = self.connection.as_ref().ok_or_else(|| anyhow!("No D-Bus connection"))?;
+        let connection = self
+            .connection
+            .as_ref()
+            .ok_or_else(|| anyhow!("No D-Bus connection"))?;
 
         let proxy = ObjectManagerProxy::builder(connection)
             .destination(BLUEZ_SERVICE)?
@@ -97,7 +111,10 @@ impl BluetoothService {
             .into_iter()
             .find_map(|(path, ifaces)| {
                 if let Some(props) = ifaces.get(BLUEZ_DEVICE_IFACE) {
-                    if let Some(address) = props.get("Address").and_then(|v| v.downcast_ref::<String>().ok()) {
+                    if let Some(address) = props
+                        .get("Address")
+                        .and_then(|v| v.downcast_ref::<String>().ok())
+                    {
                         if address == mac {
                             return Some(path);
                         }
@@ -118,7 +135,12 @@ impl BluetoothService {
             .get("Name")
             .and_then(|v| v.downcast_ref::<String>().ok())
             .map(|s| s.to_string())
-            .or_else(|| props.get("Alias").and_then(|v| v.downcast_ref::<String>().ok()).map(|s| s.to_string()))
+            .or_else(|| {
+                props
+                    .get("Alias")
+                    .and_then(|v| v.downcast_ref::<String>().ok())
+                    .map(|s| s.to_string())
+            })
             .unwrap_or_else(|| address.clone());
 
         let connected = props

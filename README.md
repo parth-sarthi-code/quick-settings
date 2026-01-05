@@ -1,29 +1,103 @@
-# niri-bar
+# WayLand QS_Panel
 
-A lightweight, high-performance top bar for the [niri](https://github.com/YaLTeR/niri) Wayland compositor.
+A modern quick settings panel and top bar for Wayland compositors.
 
-## Features
+## Screenshots
 
-✅ **Phase 1 (MVP) - Complete**
-- Workspace indicator showing current workspace (left)
-- Active window title display (left, next to workspace)
-- Clock with time and date (center)
-- Real-time updates via niri IPC
-- Layer-shell integration for proper panel behavior
+![Panel](screenshots/panel.png)
+![Expanded](screenshots/expanded.png)
+![Desktop](screenshots/desktop.png)
 
-## Architecture
+A lightweight, high-performance quick settings panel and top bar for Wayland compositors (tested with [niri](https://github.com/YaLTeR/niri)).
 
-- **Single Process**: One Rust binary with internal separation of concerns
-- **Core State Manager**: Async IPC listener + shared state
-- **GTK4 UI Layer**: Rendering only, never blocks IPC
-- **Data Flow**: `niri IPC → tokio listener → RwLock state → GTK UI`
+A lightweight, high-performance quick settings panel and top bar for Wayland compositors (tested with [niri](https://github.com/YaLTeR/niri)).
 
-## Requirements
+## Services and Integration
 
-- Rust 1.70+
-- GTK4
-- gtk4-layer-shell
-- niri compositor
+| Component         | Method | Backend/Tool                                    |
+|-------------------|--------|------------------------------------------------|
+| WiFi              | D-Bus  | NetworkManager (org.freedesktop.NetworkManager) |
+| Bluetooth         | D-Bus  | BlueZ (org.bluez)                               |
+| Audio/Volume      | CLI    | wpctl (WirePlumber)                             |
+| Brightness        | CLI    | brightnessctl                                   |
+| Battery           | File+CLI | /sys/class/power_supply + upower              |
+| Power Profile     | CLI    | powerprofilesctl                                |
+| Power Actions     | CLI    | systemctl, loginctl                             |
+| Warp VPN          | CLI    | warp-cli                                        |
+| Waybar (Top Bar)  | IPC    | niri (via $NIRI_SOCKET + socat)                 |
+
+## Manual Installation
+
+1. Install dependencies:
+    - Rust toolchain
+    - GTK4, gtk4-layer-shell, WirePlumber, NetworkManager, BlueZ, brightnessctl, upower, powerprofilesctl, systemctl, loginctl, warp-cli, socat
+
+2. Clone the repository:
+    ```sh
+    git clone <repo-url>
+    cd "Quick Settings"
+    ```
+
+3. Build the project:
+    ```sh
+    cargo build --release
+    ```
+
+4. Update your niri config (replace <path-to-project> with your actual path):
+    ```kdl
+    spawn-at-startup "<path-to-project>/target/release/deviced"
+    spawn-at-startup "<path-to-project>/target/release/qs"
+    ```
+
+5. (Optional) Update Waybar config for quicksettings:
+    ```json
+    "on-click": "pkill -SIGUSR1 qs"
+    ```
+    - Methods: Shutdown, Reboot, Suspend, Logout
+- **Battery:**
+    - Service: `org.freedesktop.UPower`
+    - Methods: Battery status, percentage
+
+### deviced Daemon (WiFi & Bluetooth)
+- **Network:**
+    - Service: `org.freedesktop.NetworkManager`
+    - Methods: Enable/disable Wi-Fi, show status
+- **Bluetooth:**
+    - Service: `org.bluez`
+    - Methods: Enable/disable, show status
+
+### CLI Tools
+- **Audio:**
+    - `wpctl set-volume`, `wpctl get-volume`
+- **Brightness:**
+    - `brightnessctl set`, `brightnessctl get`
+- **Power profiles:**
+    - `powerprofilesctl set`, `powerprofilesctl get`
+- **Systemd:**
+    - `systemctl poweroff`, `systemctl reboot`
+- **Session:**
+    - `loginctl lock-session`, `loginctl terminate-session`
+- **VPN:**
+    - `warp-cli status`, `warp-cli connect`, `warp-cli disconnect`
+- **Media:**
+    - `playerctl play-pause`, `playerctl next`, `playerctl previous`
+
+See the table above for how each component is integrated and which backend/tool is used.
+### Direct File Reads
+- **Battery:**
+    - `/sys/class/power_supply/BAT0/capacity` (percentage)
+
+## Project Structure
+
+```
+src/
+├── main.rs
+├── ipc/           # niri IPC event handling
+├── state/         # Shared state
+├── services/      # D-Bus, CLI, and system services
+├── ui/            # GTK4 UI components
+└── utils/
+```
 
 ## Building
 
@@ -37,7 +111,7 @@ cargo build --release
 ./target/release/niri-bar
 ```
 
-Or add to your niri config to start automatically:
+Or add to your niri config:
 
 ```kdl
 spawn-at-startup "niri-bar"

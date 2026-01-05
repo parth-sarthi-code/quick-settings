@@ -87,7 +87,7 @@ impl AudioService {
 #[allow(dead_code)]
 fn shorten_device_name(name: &str) -> String {
     let name = name.trim();
-    
+
     // Remove common hardware controller prefixes that repeat across multiple outputs
     let common_prefixes = [
         "Raptor Lake High Definition Audio Controller ",
@@ -95,7 +95,7 @@ fn shorten_device_name(name: &str) -> String {
         "High Definition Audio Controller ",
         "PCI ",
     ];
-    
+
     let mut clean_name = name.to_string();
     for prefix in &common_prefixes {
         if clean_name.starts_with(prefix) {
@@ -103,7 +103,7 @@ fn shorten_device_name(name: &str) -> String {
             break;
         }
     }
-    
+
     // Extract just the port info for HDMI/DisplayPort
     if let Some(pos) = clean_name.rfind("HDMI") {
         return clean_name[pos..].to_string();
@@ -111,12 +111,12 @@ fn shorten_device_name(name: &str) -> String {
     if let Some(pos) = clean_name.rfind("DisplayPort") {
         return clean_name[pos..].to_string();
     }
-    
+
     // For Bluetooth devices, keep the name as is
     if name.contains("bluez") || name.to_lowercase().contains("bluetooth") {
         return clean_name;
     }
-    
+
     // For other devices (like Speaker), limit to 35 characters
     if clean_name.len() > 35 {
         format!("{}...", &clean_name[..32])
@@ -179,36 +179,36 @@ fn parse_wpctl_status(text: &str) -> Vec<AudioOutput> {
 #[allow(dead_code)]
 fn parse_sink_line(line: &str, outputs: &mut Vec<AudioOutput>, default_id: &mut Option<String>) {
     let trimmed = line.trim_start();
-    
+
     if trimmed.is_empty() || !trimmed.starts_with('│') {
         return;
     }
-    
+
     let content = trimmed.trim_start_matches('│').trim_start();
     let is_default = content.starts_with('*');
-    let content = if is_default { 
-        content.trim_start_matches('*').trim_start() 
-    } else { 
-        content 
+    let content = if is_default {
+        content.trim_start_matches('*').trim_start()
+    } else {
+        content
     };
-    
+
     if let Some(dot_idx) = content.find('.') {
         let id_str = content[..dot_idx].trim();
         let rest = content[dot_idx + 1..].trim();
-        
+
         let name = if let Some(bracket) = rest.find('[') {
             rest[..bracket].trim()
         } else {
             rest
         };
-        
+
         if !id_str.is_empty() && id_str.chars().all(|c| c.is_ascii_digit()) && !name.is_empty() {
             outputs.push(AudioOutput {
                 id: id_str.to_string(),
                 name: shorten_device_name(name),
                 is_default,
             });
-            
+
             if is_default {
                 *default_id = Some(id_str.to_string());
             }
@@ -217,7 +217,11 @@ fn parse_sink_line(line: &str, outputs: &mut Vec<AudioOutput>, default_id: &mut 
 }
 
 #[allow(dead_code)]
-fn parse_filter_sink_line(line: &str, filter_sinks: &mut std::collections::HashMap<String, String>, default_id: &mut Option<String>) {
+fn parse_filter_sink_line(
+    line: &str,
+    filter_sinks: &mut std::collections::HashMap<String, String>,
+    default_id: &mut Option<String>,
+) {
     if !line.contains("[Audio/Sink]") {
         return;
     }
@@ -226,7 +230,7 @@ fn parse_filter_sink_line(line: &str, filter_sinks: &mut std::collections::HashM
     if trimmed.is_empty() || !trimmed.starts_with('│') {
         return;
     }
-    
+
     let content = trimmed.trim_start_matches('│').trim_start();
     let is_default = content.starts_with('*');
     let content = if is_default {
@@ -234,17 +238,17 @@ fn parse_filter_sink_line(line: &str, filter_sinks: &mut std::collections::HashM
     } else {
         content
     };
-    
+
     if let Some(dot_idx) = content.find('.') {
         let id_str = content[..dot_idx].trim();
         let rest = content[dot_idx + 1..].trim();
-        
+
         let node_name = if let Some(bracket) = rest.find('[') {
             rest[..bracket].trim()
         } else {
             rest
         };
-        
+
         if !id_str.is_empty() && id_str.chars().all(|c| c.is_ascii_digit()) {
             filter_sinks.insert(node_name.to_string(), id_str.to_string());
             if is_default {
@@ -255,7 +259,10 @@ fn parse_filter_sink_line(line: &str, filter_sinks: &mut std::collections::HashM
 }
 
 #[allow(dead_code)]
-fn replace_bluetooth_ids(outputs: &mut Vec<AudioOutput>, filter_sinks: &std::collections::HashMap<String, String>) {
+fn replace_bluetooth_ids(
+    outputs: &mut Vec<AudioOutput>,
+    filter_sinks: &std::collections::HashMap<String, String>,
+) {
     for output in outputs {
         if output.name.contains("soundcore") || output.name.contains("bluez") {
             for (node_name, filter_id) in filter_sinks {

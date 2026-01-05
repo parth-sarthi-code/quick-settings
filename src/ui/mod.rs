@@ -1,6 +1,6 @@
 pub mod bar;
-pub mod quick_settings;
-pub mod widgets;
-pub mod tiles;
-pub mod wifi;
 pub mod bluetooth;
+pub mod quick_settings;
+pub mod tiles;
+pub mod widgets;
+pub mod wifi;

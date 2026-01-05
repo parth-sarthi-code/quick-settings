@@ -41,7 +41,10 @@ impl AppState {
         if let Some(name) = &self.workspace.current_name {
             name.clone()
         } else if self.workspace.total_count > 0 {
-            format!("{}/{}", self.workspace.current_idx, self.workspace.total_count)
+            format!(
+                "{}/{}",
+                self.workspace.current_idx, self.workspace.total_count
+            )
         } else {
             "—".to_string()
         }

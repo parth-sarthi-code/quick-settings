@@ -4,10 +4,10 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixListener;
 use tokio::signal;
 
-use niri_bar::services::audio::AudioService;
-use niri_bar::services::bluetooth::BluetoothService;
-use niri_bar::services::deviced::{default_socket_path, DaemonRequest, DaemonResponse};
-use niri_bar::services::network::NetworkService;
+use qs::services::audio::AudioService;
+use qs::services::bluetooth::BluetoothService;
+use qs::services::deviced::{default_socket_path, DaemonRequest, DaemonResponse};
+use qs::services::network::NetworkService;
 
 #[tokio::main]
 async fn main() -> Result<()> {

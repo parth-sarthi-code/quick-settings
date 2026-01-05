@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 pub mod audio;
-pub mod media;
-pub mod deviced;
+pub mod bluetooth;
 pub mod device_client;
-pub mod runtime;
+pub mod deviced;
+pub mod media;
 pub mod network;
 pub mod power;
-pub mod bluetooth;
+pub mod runtime;
 
 /// Service states for UI updates
 #[allow(dead_code)]
