@@ -1,0 +1,100 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 31,
+    "spacing": 0,
+    
+    "modules-left": ["custom/workspaces", "custom/window"],
+    "modules-center": ["clock"],
+    "modules-right": [
+        "custom/warp",
+        "pulseaudio",
+        "network",
+        "bluetooth",
+        "battery",
+        "custom/quicksettings"
+    ],
+    
+    "custom/window": {
+        "exec": "~/.config/waybar/scripts/active-window.sh",
+        "return-type": "json",
+        "interval": 1,
+        "max-length": 60
+    },
+    
+    "custom/workspaces": {
+        "exec": "~/.config/waybar/scripts/workspaces.sh",
+        "return-type": "json",
+        "interval": 1,
+        "markup": "pango"
+    },
+    
+    "clock": {
+        "format": "{:%a %b %d %I:%M %p}",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "calendar": {
+            "mode": "month",
+            "format": {
+                "months": "<span color='#ffead3'><b>{}</b></span>",
+                "days": "<span color='#ecc6d9'><b>{}</b></span>",
+                "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
+                "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
+                "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+            }
+        }
+    },
+    
+    "battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-charging": "󰂄 {capacity}%",
+        "format-plugged": "󰂄 {capacity}%",
+        "format-icons": ["󰂃", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+        "tooltip-format": "{capacity}% - {timeTo}"
+    },
+    
+    "network": {
+        "format-wifi": "󰤨",
+        "format-ethernet": "󰈀",
+        "format-disconnected": "󰤭",
+        "tooltip-format-wifi": "{essid} ({signalStrength}%)",
+        "tooltip-format-ethernet": "{ipaddr}/{cidr}",
+        "tooltip-format-disconnected": "Disconnected",
+        "on-click": "sh -c 'nmcli radio wifi | grep -q enabled && nmcli radio wifi off || nmcli radio wifi on'"
+    },
+    
+    "bluetooth": {
+        "format": "󰂯",
+        "format-disabled": "󰂲",
+        "format-off": "󰂲",
+        "format-connected": "󰂱",
+        "tooltip-format": "{controller_alias}\t{controller_address}",
+        "tooltip-format-connected": "{device_alias} ({device_battery_percentage}%)",
+        "on-click": "sh -c 'bluetoothctl show | grep -q \"Powered: yes\" && bluetoothctl power off || bluetoothctl power on'"
+    },
+    
+    "pulseaudio": {
+        "format": "{icon}",
+        "format-muted": "󰝟",
+        "format-icons": {
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "tooltip-format": "{volume}%",
+        "on-click": "pavucontrol"
+    },
+    
+    "custom/warp": {
+        "exec": "if warp-cli status 2>/dev/null | grep -q Connected; then echo '󰖂'; else echo ''; fi",
+        "interval": 5,
+        "tooltip-format": "Cloudflare Warp"
+    },
+    
+    "custom/quicksettings": {
+        "format": "󰍜",
+        "on-click": "pkill -SIGUSR1 qs",
+        "tooltip": false
+    }
+}

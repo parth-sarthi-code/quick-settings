@@ -1,0 +1,104 @@
+* {
+    font-family: "SF Pro Text", "JetBrainsMono Nerd Font", sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: rgba(18, 18, 18, 0.85);
+    color: #ffffff;
+    /*     backdrop-filter: blur(10px); */
+}
+
+/* Active window */
+#custom-window {
+    padding: 0 16px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+}
+
+/* Workspace indicator – mimic Hyprland pill with subtle translucency */
+#custom-workspaces {
+    padding: 5px 14px;
+    margin: 4px 8px;
+    min-width: 48px;
+    font-weight: 600;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(40, 40, 40, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 9999px;
+    box-shadow: none;
+}
+
+/* Clock */
+#clock {
+    padding: 0 12px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Status icons */
+#battery,
+#network,
+#bluetooth,
+#pulseaudio,
+#custom-warp {
+    padding: 0 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 18px;
+}
+
+#custom-warp {
+    color: rgba(100, 200, 255, 0.9);
+}
+
+#battery.charging {
+    color: rgba(100, 255, 150, 0.9);
+}
+
+#battery.warning {
+    color: rgba(255, 200, 100, 0.9);
+}
+
+#battery.critical {
+    color: rgba(255, 100, 100, 0.9);
+}
+
+#network.disconnected {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+#bluetooth.disabled,
+#bluetooth.off {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+#pulseaudio.muted {
+    color: rgba(255, 100, 100, 0.7);
+}
+
+/* Quick settings button */
+#custom-quicksettings {
+    padding: 0 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 18px;
+}
+
+#custom-quicksettings:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Tooltips */
+tooltip {
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+tooltip label {
+    color: #ffffff;
+    padding: 8px;
+}
